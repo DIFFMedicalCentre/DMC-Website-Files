@@ -1,0 +1,41 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  background-color: hsl(0, 0%, 100%);
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+.section-offset {
+  scroll-margin-top: 90px; /* Adjust this value based on your navbar height */
+}
+
+.header--bg {
+  background-image: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)),
+    url("/DMC compound.jpg"); /* Absolute path */
+  background-size: cover;
+  background-position: center;
+}
+
+/* body {
+  overflow-x: hidden;
+} */
+
+@font-face {
+  font-family: "Agency FB";
+  src: url("/AGENCYB.TTF") format("truetype");
+  font-weight: normal;
+  font-style: normal;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}

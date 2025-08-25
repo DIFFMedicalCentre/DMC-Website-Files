@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Patients' Feedback Form</title>
+    <!-- ✅ Favicon -->
+    <link rel="icon" href="DMCLogo.png" type="image/x-icon" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/@popmotion/popmotion@10.0.0-beta.35/dist/popmotion.global.min.js"></script>
+    <style>
+      .animate-fade-in-up {
+        animation: fadeInUp 0.8s ease-out;
+      }
+      @keyframes fadeInUp {
+        from {
+          opacity: 0;
+          transform: translateY(20px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+    </style>
+  </head>
+  <body class="bg-gray-100 p-9">
+    <form
+      name="patient-feedback"
+      method="POST"
+      data-netlify="true"
+      action="thankspage.html"
+      class="max-w-4xl mx-auto w-full bg-white p-8 rounded-2xl shadow-lg transition-all duration-500 ease-in-out"
+    >
+      <input type="hidden" name="form-name" value="patient-feedback" />
+      <header
+        class="flex flex-col items-center mb-6 animate-fade-in-up space-y-2"
+      >
+        <img src="logo.png" alt="Logo" class="h-12" />
+        <h1 class="text-2xl font-bold text-gray-700 text-center pt-6 pb-3">
+          Patients' Feedback Form
+        </h1>
+      </header>
+      <hr class="mb-6" />
+      <!-- Biodata Information -->
+      <div class="space-y-4 animate-fade-in-up">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div>
+            <label class="block text-gray-600 font-semibold">Your Name:</label>
+            <input
+              type="text"
+              name="name"
+              required
+              class="w-full border rounded-lg p-2 mt-1"
+            />
+          </div>
+          <div>
+            <label class="block text-gray-600 font-semibold"
+              >Phone Number:</label
+            >
+            <input
+              type="tel"
+              name="phone"
+              required
+              class="w-full border rounded-lg p-2 mt-1"
+            />
+          </div>
+          <div>
+            <label class="block text-gray-600 font-semibold"
+              >Hospital No.:</label
+            >
+            <input
+              type="text"
+              name="hospital_no"
+              required
+              class="w-full border rounded-lg p-2 mt-1"
+            />
+          </div>
+        </div>
+      </div>
+
+      <!-- Patient Type Selection -->
+      <div class="mt-6 animate-fade-in-up">
+        <label class="block text-gray-600 font-semibold mb-2"
+          >Patient Type:</label
+        >
+        <label class="mr-4">
+          <input
+            type="radio"
+            name="patient_type"
+            value="In-Patient"
+            onclick="togglePatientType('in')"
+            required
+          />
+          In-Patient
+        </label>
+        <label>
+          <input
+            type="radio"
+            name="patient_type"
+            value="Out-Patient"
+            onclick="togglePatientType('out')"
+          />
+          Out-Patient
+        </label>
+      </div>
+
+      <!-- In-Patient Questions -->
+      <div
+        id="in-patient-questions"
+        class="hidden mt-6 space-y-4 animate-fade-in-up"
+      >
+        <label class="block">
+          How would you rate the cleanliness of your room?
+          <select
+            name="room_cleanliness"
+            class="w-full border rounded-lg p-2 mt-1"
+          >
+            <option value="">Select</option>
+            <option>Excellent</option>
+            <option>Good</option>
+            <option>Fair</option>
+            <option>Poor</option>
+          </select>
+        </label>
+        <div>
+          <label class="block"
+            >Did the doctors come for ward-round today?</label
+          >
+          <label class="mr-4">
+            <input
+              type="radio"
+              name="ward_round"
+              value="Yes"
+              onclick="toggleWardTimes(true)"
+            />
+            Yes
+          </label>
+          <label>
+            <input
+              type="radio"
+              name="ward_round"
+              value="No"
+              onclick="toggleWardTimes(false)"
+            />
+            No
+          </label>
+
+          <!-- Hidden input for number of times -->
+          <div id="ward-times-input" class="mt-2 hidden">
+            <label class="block text-gray-600 font-semibold">
+              If yes, how many times?
+            </label>
+            <input
+              type="number"
+              name="ward_round_times"
+              min="1"
+              class="w-full border rounded-lg p-2 mt-1"
+              placeholder="Enter number of times"
+            />
+          </div>
+        </div>
+        <label class="block">
+          How would you rate the food service?
+          <select
+            name="food_service"
+            id="food_service_select"
+            class="w-full border rounded-lg p-2 mt-1"
+            onchange="toggleFoodServiceFeedback(this.value)"
+          >
+            <option value="">Select</option>
+            <option>Excellent</option>
+            <option>Good</option>
+            <option>Fair</option>
+            <option>Poor</option>
+          </select>
+        </label>
+
+        <!-- Hidden textarea to explain if Fair or Poor -->
+        <div id="food_service_feedback" class="hidden mt-2 animate-fade-in-up">
+          <label class="block text-gray-600 font-semibold">
+            Please tell us the reason for your rating
+          </label>
+          <textarea
+            name="food_service_feedback_text"
+            class="w-full border rounded-lg p-2 mt-1"
+            rows="3"
+            placeholder="Your feedback here..."
+          ></textarea>
+        </div>
+        <label class="block">
+          How would you rate the time your medication was given?
+          <select
+            name="medication_time"
+            class="w-full border rounded-lg p-2 mt-1"
+          >
+            <option value="">Select</option>
+            <option>Untimely</option>
+            <option>Neutral</option>
+            <option>Timely</option>
+          </select>
+        </label>
+        <label class="block">
+          How would you rate the services of the staff?
+          <select
+            name="staff_services"
+            class="w-full border rounded-lg p-2 mt-1"
+          >
+            <option value="">Select</option>
+            <option>Excellent</option>
+            <option>Good</option>
+            <option>Fair</option>
+            <option>Poor</option>
+          </select>
+        </label>
+        <label class="block required">
+          How was the explanation given to you about your treatment plan?
+          <select
+            name="treatment_explanation"
+            class="w-full border rounded-lg p-2 mt-1"
+          >
+            <option value="">Select</option>
+            <option>Excellent</option>
+            <option>Good</option>
+            <option>Fair</option>
+            <option>Poor</option>
+          </select>
+        </label>
+        <label class="block"
+          >Did any staff make a good impression on you today?</label
+        >
+        <label class="mr-4">
+          <input
+            type="radio"
+            name="in_staff_impression"
+            value="Yes"
+            onclick="toggleStaffImpressionInput('in', true)"
+          />
+          Yes
+        </label>
+        <label>
+          <input
+            type="radio"
+            name="in_staff_impression"
+            value="No"
+            onclick="toggleStaffImpressionInput('in', false)"
+          />
+          No
+        </label>
+        <input
+          type="text"
+          name="in_staff_impression_details"
+          id="in_staff_impression_details"
+          placeholder="Kindly tell us about the staff"
+          class="w-full border rounded-lg p-2 mt-2 hidden"
+        />
+        <label class="block text-gray-600">
+          For other concern(s) not mentioned above, kindly be more expressive
+          here:
+          <textarea
+            name="in_patient_comments"
+            class="w-full border rounded-lg p-2 mt-1"
+          ></textarea>
+        </label>
+      </div>
+
+      <!-- Out-Patient Questions -->
+      <div
+        id="out-patient-questions"
+        class="hidden mt-6 space-y-4 animate-fade-in-up"
+      >
+        <label class="block">
+          How easy was it to schedule an appointment?
+          <select
+            name="appointment_ease"
+            class="w-full border rounded-lg p-2 mt-1"
+          >
+            <option value="">Select</option>
+            <option>Very Easy</option>
+            <option>Easy</option>
+            <option>Difficult</option>
+            <option>Very Difficult</option>
+          </select>
+        </label>
+        <label class="block text-gray-600 font-semibold">
+          How was your waiting time before seeing the doctor?
+          <span class="text-red-600">*</span>
+          <select
+            name="waiting_time"
+            id="waiting_time"
+            required
+            class="w-full border rounded-lg p-2 mt-1"
+            onchange="toggleWaitingTimeInput(this.value)"
+          >
+            <option value="">Select</option>
+            <option>Short</option>
+            <option>Moderate</option>
+            <option>Long</option>
+          </select>
+        </label>
+
+        <input
+          type="text"
+          name="waiting_time_details"
+          id="waiting_time_details"
+          placeholder="Please specify your waiting time"
+          class="w-full border rounded-lg p-2 mt-2 hidden"
+        />
+        <label class="block">
+          Staff Professionalism?
+          <select
+            name="staff_professionalism"
+            class="w-full border rounded-lg p-2 mt-1"
+          >
+            <option value="">Select</option>
+            <option>Excellent</option>
+            <option>Good</option>
+            <option>Fair</option>
+            <option>Poor</option>
+          </select>
+        </label>
+        <label class="block">
+          How was your billing of service(s)?
+          <select name="billing" class="w-full border rounded-lg p-2 mt-1">
+            <option value="">Select</option>
+            <option>Clear</option>
+            <option>Confusing</option>
+          </select>
+        </label>
+        <label class="block">
+          How would you rate our investigative diagnosis?
+          <select
+            name="diagnosis_rating"
+            class="w-full border rounded-lg p-2 mt-1"
+          >
+            <option value="">Select</option>
+            <option>Excellent</option>
+            <option>Good</option>
+            <option>Fair</option>
+            <option>Poor</option>
+          </select>
+        </label>
+        <label class="block">
+          What is your opinion on your consultation?
+          <span class="text-red-600">*</span>
+          <select
+            name="consultation_opinion"
+            id="consultation_opinion"
+            class="w-full border rounded-lg p-2 mt-1"
+            onchange="toggleConsultationComment(this.value)"
+            required
+          >
+            <option value="">Select</option>
+            <option>Excellent</option>
+            <option>Good</option>
+            <option>Fair</option>
+            <option>Poor</option>
+          </select>
+        </label>
+
+        <input
+          type="text"
+          name="consultation_opinion_comment"
+          id="consultation_opinion_comment"
+          placeholder="Kindly tell us why"
+          class="w-full border rounded-lg p-2 mt-2 hidden"
+        />
+        <label class="block">
+          How would you rate our staff politeness and positive attitude?
+          <select
+            name="staff_politeness"
+            class="w-full border rounded-lg p-2 mt-1"
+          >
+            <option value="">Select</option>
+            <option>Excellent</option>
+            <option>Good</option>
+            <option>Fair</option>
+            <option>Poor</option>
+          </select>
+        </label>
+        <label class="block">
+          Was the service rendered, properly explained?
+          <select
+            name="service_explained"
+            class="w-full border rounded-lg p-2 mt-1"
+          >
+            <option value="">Select</option>
+            <option>Yes</option>
+            <option>No</option>
+          </select>
+        </label>
+        <label class="block">
+          Did you feel comfortable talking to the healthcare provider?
+          <select
+            name="comfort_communication"
+            class="w-full border rounded-lg p-2 mt-1"
+          >
+            <option value="">Select</option>
+            <option>Yes</option>
+            <option>No</option>
+          </select>
+        </label>
+        <label class="block">
+          How would you rate the Cleanliness and appearance of the facility?
+          <select
+            name="facility_cleanliness"
+            class="w-full border rounded-lg p-2 mt-1"
+          >
+            <option value="">Select</option>
+
+            <option>Excellent</option>
+            <option>Good</option>
+            <option>Fair</option>
+            <option>Poor</option>
+          </select>
+        </label>
+        <label class="block"
+          >What part of your treatment would you like to see an improvement?
+          <textarea
+            name="treatment_improvement"
+            class="w-full border rounded-lg p-2 mt-1"
+          ></textarea>
+        </label>
+        <div>
+          <div>
+            <label class="block"
+              >Did any staff make a good impression on you today?</label
+            >
+            <label class="mr-4">
+              <input
+                type="radio"
+                name="staff_impression"
+                value="Yes"
+                onclick="toggleStaffImpression(true)"
+              />
+              Yes
+            </label>
+            <label>
+              <input
+                type="radio"
+                name="staff_impression"
+                value="No"
+                onclick="toggleStaffImpression(false)"
+              />
+              No
+            </label>
+
+            <!-- Hidden input field for staff details -->
+            <input
+              type="text"
+              name="staff_impression_details"
+              id="staff_impression_details"
+              placeholder="Kindly tell us about the staff"
+              class="w-full border rounded-lg p-2 mt-2 hidden"
+            />
+          </div>
+        </div>
+        <div>
+          <label class="block text-gray-600">
+            For other concern(s) not mentioned above, kindly be more expressive
+            here:
+            <textarea
+              name="out_patient_comments"
+              class="w-full border rounded-lg p-2 mt-1"
+            ></textarea>
+          </label>
+        </div>
+      </div>
+
+      <div
+        id="submit-section"
+        class="mt-6 text-center animate-fade-in-up hidden"
+      >
+        <button
+          type="submit"
+          class="bg-blue-950 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition"
+        >
+          Submit
+        </button>
+      </div>
+    </form>
+
+    <script>
+      function togglePatientType(type) {
+        const inPatientSection = document.getElementById(
+          "in-patient-questions"
+        );
+        const outPatientSection = document.getElementById(
+          "out-patient-questions"
+        );
+        const submitSection = document.getElementById("submit-section");
+
+        if (type === "in") {
+          inPatientSection.classList.remove("hidden");
+          outPatientSection.classList.add("hidden");
+
+          // Enable inputs in in-patient, disable in out-patient
+          Array.from(
+            inPatientSection.querySelectorAll("input, select, textarea")
+          ).forEach((el) => (el.disabled = false));
+          Array.from(
+            outPatientSection.querySelectorAll("input, select, textarea")
+          ).forEach((el) => (el.disabled = true));
+        } else if (type === "out") {
+          inPatientSection.classList.add("hidden");
+          outPatientSection.classList.remove("hidden");
+
+          // Enable inputs in out-patient, disable in in-patient
+          Array.from(
+            outPatientSection.querySelectorAll("input, select, textarea")
+          ).forEach((el) => (el.disabled = false));
+          Array.from(
+            inPatientSection.querySelectorAll("input, select, textarea")
+          ).forEach((el) => (el.disabled = true));
+        }
+
+        // Show submit button once a patient type is selected
+        submitSection.classList.remove("hidden");
+      }
+      function toggleWardTimes(show) {
+        const wardTimesInput = document.getElementById("ward-times-input");
+        if (show) {
+          wardTimesInput.classList.remove("hidden");
+        } else {
+          wardTimesInput.classList.add("hidden");
+          // Optional: Clear the input value when hidden
+          wardTimesInput.querySelector("input").value = "";
+        }
+      }
+      function toggleFoodServiceFeedback(value) {
+        const feedbackDiv = document.getElementById("food_service_feedback");
+        if (value === "Fair" || value === "Poor") {
+          feedbackDiv.classList.remove("hidden");
+        } else {
+          feedbackDiv.classList.add("hidden");
+          feedbackDiv.querySelector("textarea").value = "";
+        }
+      }
+      function toggleStaffImpression(show) {
+        const inputField = document.getElementById("staff_impression_details");
+        if (show) {
+          inputField.classList.remove("hidden");
+        } else {
+          inputField.classList.add("hidden");
+          inputField.value = "";
+        }
+      }
+      function toggleConsultationComment(value) {
+        const commentField = document.getElementById(
+          "consultation_opinion_comment"
+        );
+        if (value === "Fair" || value === "Poor") {
+          commentField.classList.remove("hidden");
+        } else {
+          commentField.classList.add("hidden");
+          commentField.value = "";
+        }
+      }
+      function toggleWaitingTimeInput(value) {
+        const inputField = document.getElementById("waiting_time_details");
+        if (value === "Long") {
+          inputField.classList.remove("hidden");
+        } else {
+          inputField.classList.add("hidden");
+          inputField.value = "";
+        }
+      }
+      function toggleStaffImpressionInput(type, show) {
+        const inputId =
+          type === "in"
+            ? "in_staff_impression_details"
+            : "staff_impression_details";
+        const input = document.getElementById(inputId);
+        if (show) {
+          input.classList.remove("hidden");
+          input.setAttribute("required", "");
+        } else {
+          input.classList.add("hidden");
+          input.removeAttribute("required");
+          input.value = "";
+        }
+      }
+    </script>
+    <style>
+      .animate-fade-in-up {
+        animation: fadeInUp 0.8s ease-out;
+      }
+      @keyframes fadeInUp {
+        from {
+          opacity: 0;
+          transform: translateY(20px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+    </style>
+  </body>
+</html>
