@@ -3,7 +3,6 @@ import { SiGooglemaps } from "react-icons/si";
 import { motion } from "framer-motion";
 import Footer from "../components/Footer";
 import { Link } from "react-router-dom";
-import Socials from "./Socials";
 
 const ContactUs = () => {
   return (
