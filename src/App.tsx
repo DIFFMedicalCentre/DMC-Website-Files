@@ -16,6 +16,8 @@ import VirtualBookNow from "./pages/VirtualBookNow";
 import ContactUs from "./pages/ContactUs";
 import Blogpost from "./pages/Blogpost";
 import Feedbackform from "./pages/Feedbackform";
+import Andrology from "./pages/Andrology";
+import Socials from "./pages/Socials";
 
 const App = () => {
   return (
@@ -41,6 +43,8 @@ const App = () => {
         <Route path="/blogpost" element={<Blogpost />} />
         <Route path="/feedbackform" element={<Feedbackform />} />
         <Route path="*" element={<NoPage />} />
+        <Route path="/andrology" element={<Andrology />} />
+        <Route path="/socials" element={<Socials />} />
       </Routes>
     </div>
   );
