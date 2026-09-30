@@ -28,12 +28,12 @@ const PromoModal = () => {
             ✕
           </button>
           <div className="text-center">
-            <img src="COUNT YOUR BLESSINGS.jpg" alt="Promo" />
+            <img src="12.jpg" alt="Promo" />
             <h2 className="text-3xl font-bold text-red-700">
-              Count Your Blessings
+              Introducing: THE RENAL DIALYSIS SPA
             </h2>
             <p className="text-2xl text-black mt-2">
-              A Discounted IVF Program aimed at wiping tears away from your eyes
+              ...Where healing feels like home
             </p>
             <p className="mt-4">
               <button
