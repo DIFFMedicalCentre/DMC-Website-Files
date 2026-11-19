@@ -1,4 +1,6 @@
 import { useState, useEffect } from "react";
+import { Link } from "react-router";
+Link
 
 const PromoModal = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -28,20 +30,21 @@ const PromoModal = () => {
             ✕
           </button>
           <div className="text-center">
-            <img src="COUNT YOUR BLESSINGS.jpg" alt="Promo" />
+            <img src="12.jpg" alt="Promo" />
             <h2 className="text-3xl font-bold text-red-700">
-              Count Your Blessings
+              Introducing: THE RENAL DIALYSIS SPA
             </h2>
             <p className="text-2xl text-black mt-2">
-              A Discounted IVF Program aimed at wiping tears away from your eyes
+              ...Where healing feels like home
             </p>
             <p className="mt-4">
-              <button
-                onClick={closeModal}
-                className="px-4 py-2 text-white bg-black rounded-lg hover:bg-blue-950"
-              >
-                Continue
-              </button>
+              <Link
+                    to="/renaldialysisspa"
+                    className="px-4 py-2 text-white bg-black rounded-lg hover:bg-blue-950"
+                  >
+                    Continue
+                  </Link>
+             
             </p>
           </div>
         </div>
