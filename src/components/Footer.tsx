@@ -84,7 +84,7 @@ const Footer = () => {
 
         {/* Footer Bottom */}
         <div className="mt-8 text-center border-t border-gray-700 pt-4">
-          <p>&copy; 2024 DIFF Medical Centre, Inc. All Rights Reserved.</p>
+          <p>&copy; 2026 DIFF Medical Centre, Inc. All Rights Reserved.</p>
         </div>
       </div>
     </footer>
