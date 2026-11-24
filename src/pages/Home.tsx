@@ -31,7 +31,7 @@ const slideImages: SlideItem[] = [
   },
   {
     image: "/2.jpg",
-    eyebrow: "13+ YEARS OF HEALTHCARE EXCELLENCE",
+    eyebrow: "20+ YEARS OF HEALTHCARE EXCELLENCE",
     title: "Your Health Is Our Priority",
     description:
       "From preventive care to specialist treatment, we are committed to putting patients at the heart of everything we do.",
@@ -258,13 +258,11 @@ const Home = () => {
                 }`}
               >
                 {/* Eyebrow */}
-                <div className="mb-5 flex items-center gap-3">
-                  <span className="h-[2px] w-10 bg-cyan-400" />
-
-                  <span className="text-[10px] font-bold tracking-[0.22em] text-cyan-300 sm:text-xs">
-                    {slide.eyebrow}
-                  </span>
-                </div>
+<div className="mb-5">
+  <span className="text-[10px] font-bold tracking-[0.22em] text-cyan-300 sm:text-xs">
+    {slide.eyebrow}
+  </span>
+</div>
 
                 {/* Heading */}
                 <h1 className="max-w-[750px] text-4xl font-bold leading-[1.02] tracking-[-0.04em] sm:text-5xl md:text-6xl lg:text-[5rem]">
@@ -300,7 +298,7 @@ const Home = () => {
                 <div className="mt-10 flex items-center gap-4 sm:mt-14 sm:gap-7">
                   <div>
                     <div className="text-xl font-bold sm:text-2xl">
-                      13+
+                      20+
                     </div>
 
                     <div className="mt-1 text-[9px] uppercase tracking-wider text-white/60 sm:text-[10px]">
