@@ -32,41 +32,6 @@ export const consultantsData = [
     ],
   },
   {
-    id: 2,
-    name: "Joshua Usman",
-    email: "joshua.usman@diffmedicalcentre.com",
-    specialty: "Chief Consultant Obstetrician and Gynaecologist.",
-    position: "Director of Clinical Services.",
-    user_image: "/Usman.png",
-    bioData: [
-      {
-        title: "Education",
-        details: [
-          "Bachelor of Medicine, Bachelor of Surgery(MBBS) - 1990,",
-          "University of Maiduguri.",
-          "Residency: Obstetrics and Gynaecology, 2006",
-          "University of Maiduguri, Teaching Hospital.",
-          "Fellow of West African College of Surgeons(FWACS).",
-        ],
-      },
-      {
-        title: "Associations",
-        details: [
-          "Member, Society of Gynaecology and Obstetrics of Nigeria (SOGON).",
-          "Member, American Society of Reproductive Medicine (ASRM).",
-          "Member, Medical and Dental Consultant Association of Nigeria (MDCAN).",
-          "Member, European Society of Human Reproduction and Embryology (ESHRE).",
-          "Member, Nigeria Medical Association (NMA)",
-        ],
-      },
-
-      {
-        title: "Office Hours",
-        details: ["Mondays - Fridays", "11:30am - 5pm"],
-      },
-    ],
-  },
-  {
     id: 3,
     name: "Ifedi Okonkwo",
     email: "ifedi.okonkwo@diffmedicalcentre.com",

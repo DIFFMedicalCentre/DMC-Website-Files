@@ -4,7 +4,7 @@ import Footer from "../components/Footer";
 import Counter from "../components/Counter";
 import { Link } from "react-router-dom";
 import PromoModal from "../components/PromoModal";
-import Carousel from "../components/Blogpostcarousel";
+
 
 interface SlideItem {
   image: string;
@@ -686,7 +686,7 @@ const Home = () => {
               </div>
 
               <Counter
-                end={13}
+                end={20}
                 title="Years of Experience"
               />
 
@@ -701,7 +701,7 @@ const Home = () => {
               </div>
 
               <Counter
-                end={1000}
+                end={10000}
                 title="Happy Clients"
               />
 
@@ -764,53 +764,7 @@ const Home = () => {
         </div>
       </section>
 
-      {/* =====================================================
-          BLOG / HEALTH INFORMATION
-      ====================================================== */}
-
-      <section className="bg-slate-50 py-20 sm:py-24 lg:py-28">
-        <div className="mx-auto w-[92%] max-w-[1200px]">
-
-          <div className="mb-12 flex flex-col justify-between gap-6 sm:flex-row sm:items-end">
-
-            <div>
-              <span className="text-xs font-bold tracking-[0.2em] text-cyan-600">
-                HEALTH & WELLNESS
-              </span>
-
-              <h2 className="mt-4 text-4xl font-bold tracking-[-0.04em] text-slate-800 sm:text-5xl">
-                Latest from{" "}
-                <span className="text-cyan-600">
-                  DIFF Medical Centre
-                </span>
-              </h2>
-            </div>
-
-            <Link
-              to="/blogpost"
-              className="group hidden items-center gap-3 font-bold text-cyan-700 transition-all hover:text-cyan-900 sm:inline-flex"
-            >
-              View All Posts
-
-              <span className="transition-transform duration-300 group-hover:translate-x-2">
-                →
-              </span>
-            </Link>
-          </div>
-
-          <Carousel />
-
-          <div className="mt-10 flex justify-center sm:hidden">
-            <Link
-              to="/blogpost"
-              className="inline-flex min-h-[50px] items-center gap-3 border border-slate-300 bg-white px-6 text-sm font-bold text-slate-800"
-            >
-              View All Posts
-              <span>→</span>
-            </Link>
-          </div>
-        </div>
-      </section>
+     
 
       {/* =====================================================
           FOOTER

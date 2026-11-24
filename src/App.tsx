@@ -14,7 +14,7 @@ import Obgyn from "./pages/Obgyn";
 import InPersonBookNow from "./pages/InPersonBookNow";
 import VirtualBookNow from "./pages/VirtualBookNow";
 import ContactUs from "./pages/ContactUs";
-import Blogpost from "./pages/Blogpost";
+
 import Feedbackform from "./pages/Feedbackform";
 import Andrology from "./pages/Andrology";
 import Socials from "./pages/Socials";
@@ -41,7 +41,7 @@ const App = () => {
         <Route path="/obstetrics-gynecology" element={<Obgyn />} />
         <Route path="/virtualbooknow" element={<VirtualBookNow />} />
         <Route path="/contactus" element={<ContactUs />} />
-        <Route path="/blogpost" element={<Blogpost />} />
+       
         <Route path="/feedbackform" element={<Feedbackform />} />
         <Route path="*" element={<NoPage />} />
         <Route path="/andrology" element={<Andrology />} />

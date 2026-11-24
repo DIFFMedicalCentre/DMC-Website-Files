@@ -453,12 +453,7 @@ const NavbarHome = () => {
                 Contact Us
               </Link>
 
-              <Link
-                to="/Blogpost"
-                className="transition-colors hover:text-gray-500"
-              >
-                Blogpost
-              </Link>
+              
             </div>
 
             {/* ==================================================
