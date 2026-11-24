@@ -543,24 +543,7 @@ const Navbar = () => {
             Contact Us
           </Link>
 
-          {/* BLOGPOST */}
-          <Link
-            to="/blogpost"
-            className="
-              rounded-md
-              px-4
-              py-3
-              text-base
-              font-normal
-              text-gray-700
-              transition-all
-              duration-200
-              hover:bg-cyan-50
-              hover:text-cyan-700
-            "
-          >
-            Blogpost
-          </Link>
+          
         </div>
 
         {/* =========================
@@ -1028,26 +1011,7 @@ const Navbar = () => {
               Contact Us
             </Link>
 
-            {/* BLOGPOST */}
-            <Link
-              to="/blogpost"
-              onClick={closeMobileMenu}
-              className="
-                block
-                rounded-md
-                px-4
-                py-3
-                text-base
-                font-semibold
-                text-gray-700
-                transition-colors
-                duration-200
-                hover:bg-cyan-50
-                hover:text-cyan-700
-              "
-            >
-              Blogpost
-            </Link>
+            
 
           </div>
         </div>

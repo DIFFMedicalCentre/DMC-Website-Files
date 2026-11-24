@@ -1001,25 +1001,7 @@ const NavbarHome = () => {
                 Contact Us
               </Link>
 
-              <Link
-                to="/Blogpost"
-                onClick={closeMobileMenu}
-                className="
-                  block
-                  border-b
-                  border-gray-100
-                  px-4
-                  py-4
-                  text-base
-                  font-semibold
-                  text-gray-700
-                  transition-colors
-                  hover:bg-cyan-50
-                  hover:text-cyan-900
-                "
-              >
-                Blogpost
-              </Link>
+              
 
               <Link
                 to="/renaldialysisspa"
