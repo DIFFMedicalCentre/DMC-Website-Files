@@ -70,14 +70,14 @@ const servicesData: Service[] = [
   {
     id: 1,
     title: "In-vitro Fertilization (IVF)",
-    image: "/1.jpg",
+    image: "/2.jpg",
     description:
       "Specialized fertility and reproductive healthcare services.",
   },
   {
     id: 2,
     title: "Obstetrics & Gynecology",
-    image: "/2.jpg",
+    image: "/6.jpg",
     description:
       "Comprehensive women's health, pregnancy and maternity care.",
     url: "/obstetrics-gynecology",
@@ -85,35 +85,35 @@ const servicesData: Service[] = [
   {
     id: 3,
     title: "Paediatrics",
-    image: "/3.jpg",
+    image: "/5.jpg",
     description:
       "Dedicated healthcare services for infants, children and adolescents.",
   },
   {
     id: 4,
     title: "Family Medicine & Therapy",
-    image: "/4.jpg",
+    image: "/14.jpg",
     description:
       "Holistic healthcare for individuals and families.",
   },
   {
     id: 5,
     title: "Dental Clinic",
-    image: "/5.jpg",
+    image: "/16.jpg",
     description:
       "Professional dental care and oral health services.",
   },
   {
     id: 6,
     title: "Endocrinology",
-    image: "/6.jpg",
+    image: "/15.jpg",
     description:
       "Specialist care for hormonal and metabolic conditions.",
   },
   {
     id: 7,
     title: "Physiotherapy & Rehabilitation",
-    image: "/7.jpg",
+    image: "/23.jpg",
     description:
       "Rehabilitation and physical therapy designed to restore mobility.",
   },
@@ -127,49 +127,49 @@ const servicesData: Service[] = [
   {
     id: 9,
     title: "Orthopaedics & Trauma",
-    image: "/9.jpg",
+    image: "/24.jpg",
     description:
       "Specialist treatment for bones, joints, muscles and injuries.",
   },
   {
     id: 10,
     title: "Rapid Response",
-    image: "/10.jpg",
+    image: "/21.jpg",
     description:
       "Prompt medical attention for urgent healthcare needs.",
   },
   {
     id: 11,
     title: "Surgery",
-    image: "/1.jpg",
+    image: "/22.jpg",
     description:
       "Surgical services supported by experienced medical professionals.",
   },
   {
     id: 12,
     title: "Radiology",
-    image: "/2.jpg",
+    image: "/20.jpg",
     description:
       "Diagnostic imaging services supporting accurate clinical care.",
   },
   {
     id: 13,
     title: "Eye Clinic",
-    image: "/3.jpg",
+    image: "/18.jpg",
     description:
       "Comprehensive eye examinations and ophthalmic services.",
   },
   {
     id: 14,
     title: "Anaesthesia & Intensive Care",
-    image: "/4.jpg",
+    image: "/17.jpg",
     description:
       "Specialized anaesthesia and critical care services.",
   },
   {
     id: 15,
     title: "E.N.T Clinic",
-    image: "/5.jpg",
+    image: "/19.jpg",
     description:
       "Specialist care for ear, nose and throat conditions.",
   },
