@@ -1,3 +1,4 @@
+
 # Logs
 logs
 *.log
@@ -22,3 +23,25 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Local Netlify folder
+.netlify
+
+# Protect confidential environment variables
+.env
+.env.*
+!.env.example
+
+# DMC local webhook testing
+webhook-proxy.cjs
+
+# TypeScript build cache
+*.tsbuildinfo
+
+# Confidential environment variables
+.env
+.env.*
+!.env.example
+
+# Netlify local development cache
+.netlify/

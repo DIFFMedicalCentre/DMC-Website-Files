@@ -10,6 +10,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@marsidev/react-turnstile": "^1.6.3",
     "@react-google-maps/api": "^2.20.3",
     "@supabase/ssr": "^0.12.7",
     "@supabase/supabase-js": "^2.119.2",
@@ -24,10 +25,12 @@
     "react-icons": "^5.3.0",
     "react-router": "^7.18.3",
     "react-router-dom": "^7.18.3",
-    "react-slideshow-image": "^4.3.1"
+    "react-slideshow-image": "^4.3.1",
+    "svix": "^2.11.1"
   },
   "devDependencies": {
     "@eslint/js": "^9.9.0",
+    "@types/node": "^26.6.11",
     "@types/react": "^18.3.3",
     "@types/react-dom": "^18.3.0",
     "@vitejs/plugin-react": "^5.0.1",

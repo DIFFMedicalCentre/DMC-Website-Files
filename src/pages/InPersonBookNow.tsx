@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Footer from "../components/Footer";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -14,9 +14,18 @@ import {
   FaExclamationTriangle,
 } from "react-icons/fa";
 import Navbar from "../components/Navbar";
+import Turnstile from "../components/Turnstile";
 
 const InPersonBookNow = () => {
   const [step, setStep] = useState(1);
+  const [submitting, setSubmitting] = useState(false);
+  const [turnstileToken, setTurnstileToken] = useState("");
+  const [turnstileResetKey, setTurnstileResetKey] = useState(0);
+  const [submissionError, setSubmissionError] = useState("");
+  const [bookingReference, setBookingReference] = useState("");
+  const [emailStatus, setEmailStatus] = useState("");
+  const submissionLock = useRef(false);
+  const attempt = useRef<{ key: string; payload: string } | null>(null);
   const [newPatient, setNewPatient] = useState("");
   const [validationAttempt, setValidationAttempt] = useState(0);
   const [selectedAppointment, setSelectedAppointment] = useState("");
@@ -313,19 +322,19 @@ const InPersonBookNow = () => {
   };
 
   const doctorSchedules: Record<string, DoctorSchedule> = {
-    "obgyn-consultant-1": {
+    "john-idahosa": {
       days: [1, 2, 3, 4, 5],
       startTime: "14:00",
       endTime: "16:00",
       slotDuration: 30,
     },
-    "obgyn-consultant-2": {
+    "ifedi-okonkwo": {
       days: [1, 2, 3, 4, 5],
       startTime: "11:00",
       endTime: "16:00",
       slotDuration: 30,
     },
-    "obgyn-consultant-3": {
+    "dauda-deba-barau": {
       days: [1, 2, 3, 4, 5],
       startTime: "11:00",
       endTime: "16:00",
@@ -413,7 +422,7 @@ const InPersonBookNow = () => {
   // Any time listed here is automatically shown as unavailable/disabled.
   const bookedSlotsByDoctorAndDate: Record<string, string[]> = {
     // Example:
-    // "obgyn-consultant-1|2026-11-02": ["09:30", "11:00"],
+    // "john-idahosa|2026-11-02": ["09:30", "11:00"],
     // "Dental Surgeon|2026-11-03": ["10:00", "12:30"],
   };
 
@@ -757,7 +766,64 @@ const InPersonBookNow = () => {
   };
 
   // Next button
-  const handleNext = () => {
+  const handleNext = async () => {
+    if (submissionLock.current) return;
+    if (step === 3) {
+      if (!turnstileToken) {
+        setSubmissionError("Please complete the security verification.");
+        return;
+      }
+      submissionLock.current = true;
+      setSubmitting(true);
+      setSubmissionError("");
+      try {
+        const isNew = newPatient === "Yes";
+        const payload = {
+          patientType: isNew ? "new" : "existing",
+          firstName: isNew ? firstName : existingFirstName,
+          lastName: isNew ? lastName : existingLastName,
+          email: isNew ? email : existingEmail,
+          phone: isNew ? phone : existingPhone,
+          whatsappPhone: isNew ? whatsappPhone : existingWhatsappPhone,
+          ...(isNew ? { middleName, gender, dateOfBirth, residentialAddress,
+            residentialCity, stateOfOrigin, maritalStatus, nationality,
+            nextOfKin, nextOfKinRelationship, howDidYouHear } : { hospitalNumber }),
+          appointmentType: selectedAppointment,
+          obgynIvfPath, consultantId: selectedConsultant,
+          specialistService: selectedSpecialistService,
+          specialistDoctor: selectedSpecialistDoctor,
+          requestedDate: selectedConsultationDate,
+          requestedTime: selectedConsultationTime,
+          callAhead: selectedDateNeedsCallAhead,
+        };
+        const serialized = JSON.stringify(payload);
+        if (!attempt.current || attempt.current.payload !== serialized) {
+          attempt.current = { key: crypto.randomUUID(), payload: serialized };
+        }
+        const response = await fetch("/.netlify/functions/create-appointment", {
+          method: "POST", headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ ...payload, idempotencyKey: attempt.current.key, turnstileToken }),
+          signal: AbortSignal.timeout(25000),
+        });
+        const result = await response.json();
+        if (!response.ok || !result.success || !result.bookingReference) {
+          if (response.status === 400) attempt.current = null;
+          throw new Error(result.message || "Unable to verify submission. Please retry.");
+        }
+        setBookingReference(result.bookingReference);
+        setEmailStatus(result.patientEmail);
+        setStep(4);
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      } catch (error) {
+        setSubmissionError(error instanceof Error && error.name === "Error" ? error.message : "Unable to verify submission. Please retry without refreshing the page.");
+      } finally {
+        setTurnstileToken("");
+        setTurnstileResetKey((current) => current + 1);
+        submissionLock.current = false;
+        setSubmitting(false);
+      }
+      return;
+    }
     if (step >= 4) return;
 
     if (!canContinue) {
@@ -795,7 +861,10 @@ const InPersonBookNow = () => {
 
   // Back button
   const handleBack = () => {
-    if (step <= 1) return;
+    if (step <= 1 || submissionLock.current || (step === 3 && attempt.current)) return;
+
+    setTurnstileToken("");
+    setTurnstileResetKey((current) => current + 1);
 
     setValidationAttempt(0);
     setStep((prev) => prev - 1);
@@ -1880,9 +1949,9 @@ const InPersonBookNow = () => {
                                 <h4 className="mb-3 font-bold text-slate-800">Available OBGYN Consultants</h4>
                                 <p className="mb-4 text-xs leading-5 text-slate-500">Select a consultant and preferred working session. Replace the sample entries below with DIFF Medical Centre’s confirmed consultant roster and clinic hours.</p>
                                 <div className="grid gap-3 md:grid-cols-2">
-                                  {[{ id: "obgyn-consultant-1", name: "Dr. John Idahosa", hours: "Monday to Friday • 2:00 PM – 4:00 PM" }, { id: "obgyn-consultant-2", name: "Dr. Ifedi Okonkwo", hours: "Monday to Friday • 11:00 AM – 4:00 PM" }, { id: "obgyn-consultant-3", name: "Dr. Dauda Deba Barau", hours: "Monday to Friday • 11:00 AM – 4:00 PM" }].map((person) => (
+                                  {[{ id: "john-idahosa", name: "Dr. John Idahosa", hours: "Monday to Friday • 2:00 PM – 4:00 PM" }, { id: "ifedi-okonkwo", name: "Dr. Ifedi Okonkwo", hours: "Monday to Friday • 11:00 AM – 4:00 PM" }, { id: "dauda-deba-barau", name: "Dr. Dauda Deba Barau", hours: "Monday to Friday • 11:00 AM – 4:00 PM" }].map((person, index) => (
                                     <button key={person.id} type="button" onClick={() => { setSelectedConsultant(person.id); resetConsultationSelection(); setValidationAttempt(0); }} className={`flex items-start gap-3 rounded-xl border bg-white p-4 text-left transition-all ${selectedConsultant === person.id ? "border-cyan-500 ring-2 ring-cyan-100" : "border-slate-200 hover:border-cyan-300"}`}>
-                                      <img src={["https://images.unsplash.com/photo-1559839734-2b71ea197ec2?auto=format&fit=crop&w=160&h=160&q=80", "https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?auto=format&fit=crop&w=160&h=160&q=80", "https://images.unsplash.com/photo-1622253692010-333f2da6031d?auto=format&fit=crop&w=160&h=160&q=80"][Number(person.id.slice(-1)) - 1]} alt={`Tentative portrait for ${person.name}`} className="h-12 w-12 shrink-0 rounded-full object-cover ring-2 ring-white shadow-sm" /><span className="min-w-0 flex-1"><span className="block font-bold text-slate-800">{person.name}</span><span className="mt-1 block text-xs text-slate-500">{person.hours}</span></span><span className={`mt-1 h-4 w-4 rounded-full border ${selectedConsultant === person.id ? "border-cyan-600 bg-cyan-600 ring-2 ring-cyan-100" : "border-slate-300"}`} />
+                                      <img src={["https://images.unsplash.com/photo-1559839734-2b71ea197ec2?auto=format&fit=crop&w=160&h=160&q=80", "https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?auto=format&fit=crop&w=160&h=160&q=80", "https://images.unsplash.com/photo-1622253692010-333f2da6031d?auto=format&fit=crop&w=160&h=160&q=80"][index]} alt={`Tentative portrait for ${person.name}`} className="h-12 w-12 shrink-0 rounded-full object-cover ring-2 ring-white shadow-sm" /><span className="min-w-0 flex-1"><span className="block font-bold text-slate-800">{person.name}</span><span className="mt-1 block text-xs text-slate-500">{person.hours}</span></span><span className={`mt-1 h-4 w-4 rounded-full border ${selectedConsultant === person.id ? "border-cyan-600 bg-cyan-600 ring-2 ring-cyan-100" : "border-slate-300"}`} />
                                     </button>
                                   ))}
                                 </div>
@@ -1895,9 +1964,9 @@ const InPersonBookNow = () => {
                                 <h4 className="mb-3 font-bold text-slate-800">Meet the IVF Team</h4>
                                 <p className="mb-4 text-xs text-slate-500">Choose a team member to indicate your preferred contact.</p>
                                 <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                                  {[{ id: "ivf-team-1", name: "Dr. Adesuwa Evans-Ogbebor", role: "Embryologist Laboratory Director" }, { id: "ivf-team-2", name: "Godspower Omogiade", role: "Deputy Head, IVF Unit" }, { id: "ivf-team-2", name: "Damilola Akinmoluwayan", role: "Head, IVF Nursing Unit" }].map((person) => (
+                                  {[{ id: "adesuwa-evans-ogbebor", name: "Dr. Adesuwa Evans-Ogbebor", role: "Embryologist Laboratory Director" }, { id: "godspower-omogiade", name: "Godspower Omogiade", role: "Deputy Head, IVF Unit" }, { id: "damilola-akinmoluwayan", name: "Damilola Akinmoluwayan", role: "Head, IVF Nursing Unit" }].map((person, index) => (
                                     <button key={person.id} type="button" onClick={() => setSelectedConsultant(person.id)} className={`rounded-xl border bg-white p-4 text-left transition-all ${selectedConsultant === person.id ? "border-cyan-500 ring-2 ring-cyan-100" : "border-slate-200 hover:border-cyan-300"}`}>
-                                      <img src={["https://images.unsplash.com/photo-1582750433449-648ed127bb54?auto=format&fit=crop&w=180&h=180&q=80", "https://images.unsplash.com/photo-1594824476967-48c8b964273f?auto=format&fit=crop&w=180&h=180&q=80", "https://images.unsplash.com/photo-1614608682850-e0d6ed316d47?auto=format&fit=crop&w=180&h=180&q=80"][Number(person.id.slice(-1)) - 1]} alt={`Tentative portrait for ${person.name}`} className="mb-3 h-16 w-16 rounded-full object-cover ring-2 ring-purple-100 shadow-sm" /><span className="block font-bold text-slate-800">{person.name}</span><span className="mt-1 block text-xs text-slate-500">{person.role}</span>
+                                      <img src={["https://images.unsplash.com/photo-1582750433449-648ed127bb54?auto=format&fit=crop&w=180&h=180&q=80", "https://images.unsplash.com/photo-1594824476967-48c8b964273f?auto=format&fit=crop&w=180&h=180&q=80", "https://images.unsplash.com/photo-1614608682850-e0d6ed316d47?auto=format&fit=crop&w=180&h=180&q=80"][index]} alt={`Tentative portrait for ${person.name}`} className="mb-3 h-16 w-16 rounded-full object-cover ring-2 ring-purple-100 shadow-sm" /><span className="block font-bold text-slate-800">{person.name}</span><span className="mt-1 block text-xs text-slate-500">{person.role}</span>
                                     </button>
                                   ))}
                                 </div>
@@ -2056,17 +2125,17 @@ const InPersonBookNow = () => {
                                   </p>
                                   <h4 className="mt-1 text-lg font-extrabold text-[#092957] sm:text-xl">
                                     {({
-                                      "obgyn-consultant-1": "Dr. John Idahosa",
-                                      "obgyn-consultant-2": "Dr. Ifedi Okonkwo",
-                                      "obgyn-consultant-3": "Dr. Dauda Deba Barau",
+                                      "john-idahosa": "Dr. John Idahosa",
+                                      "ifedi-okonkwo": "Dr. Ifedi Okonkwo",
+                                      "dauda-deba-barau": "Dr. Dauda Deba Barau",
                                     } as Record<string, string>)[activeSchedulingDoctor] || activeSchedulingDisplayName}
                                   </h4>
-                                  {activeSchedulingDoctor.startsWith("obgyn-consultant-") && (
+                                  {["john-idahosa", "ifedi-okonkwo", "dauda-deba-barau"].includes(activeSchedulingDoctor) && (
                                     <p className="mt-1 text-sm font-semibold text-cyan-800">
                                       {({
-                                        "obgyn-consultant-1": "Chief Medical Director, DIFF Medical Centre",
-                                        "obgyn-consultant-2": "Director of Clinical Services, DIFF Medical Centre",
-                                        "obgyn-consultant-3": "Head of O & G",
+                                        "john-idahosa": "Chief Medical Director, DIFF Medical Centre",
+                                        "ifedi-okonkwo": "Director of Clinical Services, DIFF Medical Centre",
+                                        "dauda-deba-barau": "Head of O & G",
                                       } as Record<string, string>)[activeSchedulingDoctor]}
                                     </p>
                                   )}
@@ -2521,12 +2590,12 @@ const InPersonBookNow = () => {
                                   ["OBGYN / IVF Pathway", obgynIvfPath === "consultants" ? "OBGYN - Consultants" : obgynIvfPath === "ivf" ? "IVF Team" : ""],
                                   ["Selected Consultant / Team Member", selectedConsultant
                                     ? ({
-                                        "obgyn-consultant-1": "Dr. John Idahosa",
-                                        "obgyn-consultant-2": "Dr. Ifedi Okonkwo",
-                                        "obgyn-consultant-3": "Dr. Dauda Deba Barau",
-                                        "ivf-team-1": "Dr. Adesuwa Evans-Ogbebor — Embryologist Laboratory Director",
-                                        "ivf-team-2": "Godspower Omogiade — Deputy Head, IVF Unit",
-                                        "Damilola Akinmoluwayan": "Damilola Akinmoluwayan — Head, IVF Nursing Unit",
+                                        "john-idahosa": "Dr. John Idahosa",
+                                        "ifedi-okonkwo": "Dr. Ifedi Okonkwo",
+                                        "dauda-deba-barau": "Dr. Dauda Deba Barau",
+                                        "adesuwa-evans-ogbebor": "Dr. Adesuwa Evans-Ogbebor — Embryologist Laboratory Director",
+                                        "godspower-omogiade": "Godspower Omogiade — Deputy Head, IVF Unit",
+                                        "damilola-akinmoluwayan": "Damilola Akinmoluwayan — Head, IVF Nursing Unit",
                                       } as Record<string, string>)[selectedConsultant] || selectedConsultant.replace(/-/g, " ")
                                     : ""],
                                 ]
@@ -2628,6 +2697,12 @@ const InPersonBookNow = () => {
                       appointment.
                     </p>
 
+                    <div className="mx-auto mt-5 max-w-lg rounded-xl border border-cyan-100 bg-cyan-50 p-4" role="status">
+                      <p className="text-sm font-semibold text-[#092957]">Booking reference</p>
+                      <p className="mt-1 text-xl font-extrabold text-[#092957]">{bookingReference}</p>
+                      <p className="mt-2 text-sm font-semibold text-amber-800">Pending Confirmation</p>
+                      <p className="mt-2 text-xs text-slate-600">{emailStatus === "accepted" ? "Your acknowledgement email has been submitted for delivery." : "Email delivery could not be verified. Please keep your booking reference."}</p>
+                    </div>
                     {/* WhatsApp CTA */}
                     <a
                       href={whatsappLink}
@@ -2646,6 +2721,15 @@ const InPersonBookNow = () => {
             {/* =====================================================
                 NAVIGATION BUTTONS
             ===================================================== */}
+            {step === 3 && (
+              <div className="mx-5 mb-4 rounded-xl border border-slate-200 bg-white p-4 sm:mx-8 lg:mx-10">
+                <p className="mb-3 text-sm font-semibold text-[#092957]">Security verification</p>
+                <Turnstile onVerify={setTurnstileToken} resetKey={turnstileResetKey} />
+              </div>
+            )}
+            {step === 3 && submissionError && (
+              <p role="alert" className="mx-5 mb-4 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">{submissionError}</p>
+            )}
             {step < 4 && (
               <div className="flex items-center justify-between gap-4 border-t border-slate-100 bg-slate-50/70 px-5 py-5 sm:px-8 lg:px-10">
                 {/* Back */}
@@ -2653,6 +2737,7 @@ const InPersonBookNow = () => {
                   <motion.button
                     type="button"
                     onClick={handleBack}
+                    disabled={submitting || (step === 3 && Boolean(attempt.current))}
                     whileHover={{
                       x: -3,
                     }}
@@ -2673,11 +2758,13 @@ const InPersonBookNow = () => {
                   <motion.button
                     type="button"
                     onClick={handleNext}
+                    disabled={submitting || (step === 3 && !turnstileToken)}
+                    aria-busy={submitting}
                     whileHover={{ y: -2 }}
                     whileTap={{ scale: 0.97 }}
                     className="inline-flex items-center gap-3 rounded-xl bg-[#092957] px-7 py-3 text-sm font-bold text-white shadow-lg transition-all duration-300 hover:bg-cyan-700"
                   >
-                    {step === 3 ? "Submit" : "Next"}
+                    {submitting ? "Submitting…" : step === 3 ? "Submit" : "Next"}
                     <FaArrowRight />
                   </motion.button>
                 )}
