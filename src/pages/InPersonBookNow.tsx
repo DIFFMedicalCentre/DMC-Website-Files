@@ -16,7 +16,25 @@ import {
 import Navbar from "../components/Navbar";
 import Turnstile from "../components/Turnstile";
 
+// DMC consultation times are in WAT (UTC+01:00), not the visitor's time zone.
+const watDate = (now = Date.now()) => new Date(now + 3600000).toISOString().slice(0, 10);
+const elapsedSlot = (date: string, time: string, now = Date.now()) =>
+  Boolean(date && time && Date.parse(`${date}T${time}:00+01:00`) <= now);
+const elapsedMessage = "The selected consultation time has elapsed. Kindly select another available time.";
+
 const InPersonBookNow = () => {
+  const [clock, setClock] = useState(Date.now);
+  useEffect(() => {
+    const refresh = () => setClock(Date.now());
+    const timer = window.setInterval(refresh, 30000);
+    window.addEventListener("focus", refresh);
+    document.addEventListener("visibilitychange", refresh);
+    return () => {
+      window.clearInterval(timer);
+      window.removeEventListener("focus", refresh);
+      document.removeEventListener("visibilitychange", refresh);
+    };
+  }, []);
   const [step, setStep] = useState(1);
   const [submitting, setSubmitting] = useState(false);
   const [turnstileToken, setTurnstileToken] = useState("");
@@ -35,8 +53,8 @@ const InPersonBookNow = () => {
   const [selectedSpecialistDoctor, setSelectedSpecialistDoctor] = useState("");
   const [selectedConsultationDate, setSelectedConsultationDate] = useState("");
   const [visibleCalendarMonth, setVisibleCalendarMonth] = useState(() => {
-    const today = new Date();
-    return new Date(today.getFullYear(), today.getMonth(), 1);
+    const [year, month] = watDate().split("-").map(Number);
+    return new Date(year, month - 1, 1);
   });
   const [selectedConsultationTime, setSelectedConsultationTime] = useState("");
   const [publicHolidays, setPublicHolidays] = useState<{ date: string; name: string }[]>([]);
@@ -547,8 +565,8 @@ const InPersonBookNow = () => {
 
   // Open-ended month/year calendar. Month navigation is not capped; the
   // year dropdown expands as the user navigates farther into the future.
-  const todayForCalendar = new Date();
-  todayForCalendar.setHours(0, 0, 0, 0);
+  const [watYear, watMonth, watDay] = watDate(clock).split("-").map(Number);
+  const todayForCalendar = new Date(watYear, watMonth - 1, watDay);
   const firstCalendarMonth = new Date(
     todayForCalendar.getFullYear(),
     todayForCalendar.getMonth(),
@@ -573,7 +591,7 @@ const InPersonBookNow = () => {
       String(date.getDate()).padStart(2, "0"),
     ].join("-");
     const holidayName = publicHolidayByDate.get(value);
-    const isTodayOrFuture = date.getTime() >= todayForCalendar.getTime();
+    const isTodayOrFuture = value >= watDate(clock);
     const isRegularWorkingDay = Boolean(
       activeDoctorSchedule?.days.includes(date.getDay()),
     );
@@ -641,6 +659,20 @@ const InPersonBookNow = () => {
         ] ?? []
       : [];
 
+  const selectionExpired = selectedConsultationDate !== "" && (
+    selectedConsultationDate < watDate(clock) ||
+    elapsedSlot(selectedConsultationDate, selectedConsultationTime, clock)
+  );
+
+  useEffect(() => {
+    // Preserve the exact payload after an ambiguous network failure; do not
+    // silently create a second request with a new idempotency key.
+    if (step !== 2 || !selectionExpired || submissionLock.current || attempt.current) return;
+    if (selectedConsultationDate < watDate()) setSelectedConsultationDate("");
+    setSelectedConsultationTime("");
+    setSubmissionError(elapsedMessage);
+  }, [step, selectionExpired, selectedConsultationDate]);
+
   const resetConsultationSelection = () => {
     setSelectedConsultationDate("");
     setSelectedConsultationTime("");
@@ -684,8 +716,8 @@ const InPersonBookNow = () => {
           selectedSpecialistDoctor);
 
       if (needsDoctorTimeSlot) {
-        if (!selectedConsultationDate) invalid.push("consultation-date");
-        if (!selectedDateNeedsCallAhead && !selectedConsultationTime) {
+        if (!selectedConsultationDate || selectedConsultationDate < watDate(clock)) invalid.push("consultation-date");
+        if (!selectedDateNeedsCallAhead && (!selectedConsultationTime || selectionExpired)) {
           invalid.push("consultation-time");
         }
       }
@@ -769,6 +801,16 @@ const InPersonBookNow = () => {
   const handleNext = async () => {
     if (submissionLock.current) return;
     if (step === 3) {
+      if (!attempt.current && (selectedConsultationDate < watDate() ||
+          elapsedSlot(selectedConsultationDate, selectedConsultationTime))) {
+        setSubmissionError(elapsedMessage);
+        setSelectedConsultationTime("");
+        if (selectedConsultationDate < watDate()) setSelectedConsultationDate("");
+        setTurnstileToken("");
+        setTurnstileResetKey((current) => current + 1);
+        setStep(2);
+        return;
+      }
       if (!turnstileToken) {
         setSubmissionError("Please complete the security verification.");
         return;
@@ -796,6 +838,7 @@ const InPersonBookNow = () => {
           requestedTime: selectedConsultationTime,
           callAhead: selectedDateNeedsCallAhead,
         };
+        const hadPreviousAttempt = Boolean(attempt.current);
         const serialized = JSON.stringify(payload);
         if (!attempt.current || attempt.current.payload !== serialized) {
           attempt.current = { key: crypto.randomUUID(), payload: serialized };
@@ -807,7 +850,19 @@ const InPersonBookNow = () => {
         });
         const result = await response.json();
         if (!response.ok || !result.success || !result.bookingReference) {
-          if (response.status === 400) attempt.current = null;
+          if (response.status === 400 && result.message !== elapsedMessage && result.message !== "Please select a current or future consultation date.") attempt.current = null;
+          if (response.status === 400 && (result.message === elapsedMessage || result.message === "Please select a current or future consultation date.")) {
+            // A first definitive rejection is safe to edit; an earlier uncertain
+            // attempt may already have saved the same request.
+            if (!hadPreviousAttempt) {
+              attempt.current = null;
+              setSelectedConsultationTime("");
+              if (selectedConsultationDate < watDate()) setSelectedConsultationDate("");
+              setStep(2);
+            } else {
+              throw new Error("The selected time has elapsed and an earlier submission may already have been saved. Please contact DMC to verify before making another request.");
+            }
+          }
           throw new Error(result.message || "Unable to verify submission. Please retry.");
         }
         setBookingReference(result.bookingReference);
@@ -826,6 +881,12 @@ const InPersonBookNow = () => {
     }
     if (step >= 4) return;
 
+    if (step === 2 && (selectedConsultationDate && selectedConsultationDate < watDate() ||
+        elapsedSlot(selectedConsultationDate, selectedConsultationTime))) {
+      setClock(Date.now());
+      setSubmissionError(elapsedMessage);
+      return;
+    }
     if (!canContinue) {
       // Validation messages are intentionally triggered only by clicking Next.
       // Incrementing the attempt also replays the bounce if Next is clicked again
@@ -2394,7 +2455,7 @@ const InPersonBookNow = () => {
                                             {selectedDateHours
                                               ? `Clinic hours: ${formatTime(selectedDateHours.startTime)} – ${formatTime(selectedDateHours.endTime)}. Choose an available time for ${formatDate(selectedConsultationDate)}.`
                                               : `Choose an available time for ${formatDate(selectedConsultationDate)}.`}
-                                            {" "}Already booked times cannot be selected.
+                                            {" "}Already booked or elapsed times cannot be selected. All times are WAT.
                                           </p>
                                         </div>
 
@@ -2402,23 +2463,26 @@ const InPersonBookNow = () => {
                                           {consultationTimeSlots.map((time) => {
                                         const booked =
                                           bookedConsultationSlots.includes(time);
+                                        const elapsed = elapsedSlot(selectedConsultationDate, time, clock);
+                                        const unavailable = booked || elapsed;
                                         const selected =
-                                          selectedConsultationTime === time;
+                                          selectedConsultationTime === time && !unavailable;
 
                                         return (
                                           <button
                                             key={time}
                                             type="button"
-                                            disabled={booked}
-                                            aria-disabled={booked}
+                                            disabled={unavailable}
+                                            aria-disabled={unavailable}
                                             aria-pressed={selected}
                                             onClick={() => {
-                                              if (booked) return;
+                                              if (booked || elapsedSlot(selectedConsultationDate, time)) { setClock(Date.now()); return; }
+                                              setSubmissionError("");
                                               setSelectedConsultationTime(time);
                                               setValidationAttempt(0);
                                             }}
                                             className={`relative rounded-xl border px-3 py-3 text-sm font-bold transition-all ${
-                                              booked
+                                              unavailable
                                                 ? "cursor-not-allowed border-slate-200 bg-slate-100 text-slate-400 line-through opacity-70"
                                                 : selected
                                                   ? "border-blue-600 bg-blue-600 text-white shadow-md shadow-blue-600/20"
@@ -2426,9 +2490,9 @@ const InPersonBookNow = () => {
                                             }`}
                                           >
                                             {formatTime(time)}
-                                            {booked && (
+                                            {unavailable && (
                                               <span className="mt-1 block text-[9px] font-bold uppercase tracking-wide no-underline">
-                                                Booked
+                                                {elapsed ? "Elapsed" : "Booked"}
                                               </span>
                                             )}
                                           </button>
@@ -2436,6 +2500,9 @@ const InPersonBookNow = () => {
                                       })}
                                     </div>
 
+                                        {consultationTimeSlots.length > 0 && consultationTimeSlots.every(time => bookedConsultationSlots.includes(time) || elapsedSlot(selectedConsultationDate, time, clock)) && (
+                                          <p className="mt-3 text-sm text-amber-800">No consultation slots remain for this date. Please select another date.</p>
+                                        )}
                                         <RequiredFieldError
                                           fieldKey="consultation-time"
                                           show={
@@ -2721,13 +2788,16 @@ const InPersonBookNow = () => {
             {/* =====================================================
                 NAVIGATION BUTTONS
             ===================================================== */}
+            {step === 3 && selectionExpired && (
+              <p role="alert" className="mx-5 mb-4 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">{attempt.current ? "The selected time has elapsed. A previous submission may already have been saved; contact DMC if its outcome cannot be verified." : "The selected consultation time has elapsed. Please go back and select another time."}</p>
+            )}
             {step === 3 && (
               <div className="mx-5 mb-4 rounded-xl border border-slate-200 bg-white p-4 sm:mx-8 lg:mx-10">
                 <p className="mb-3 text-sm font-semibold text-[#092957]">Security verification</p>
                 <Turnstile onVerify={setTurnstileToken} resetKey={turnstileResetKey} />
               </div>
             )}
-            {step === 3 && submissionError && (
+            {(step === 2 || step === 3) && submissionError && (
               <p role="alert" className="mx-5 mb-4 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">{submissionError}</p>
             )}
             {step < 4 && (

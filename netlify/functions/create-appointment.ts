@@ -585,6 +585,14 @@ export default async function handler(
       );
     }
 
+    // Consultation times are expressed in Nigerian WAT (UTC+01:00).
+    if (requestedTime &&
+        Date.parse(`${requestedDate}T${requestedTime}:00+01:00`) <= Date.now()) {
+      throw new Invalid(
+        'The selected consultation time has elapsed. Kindly select another available time.'
+      );
+    }
+
     // --------------------------------------------------
     // 12. SUPABASE DATABASE SUBMISSION
     // --------------------------------------------------
